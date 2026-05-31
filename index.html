@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wout Demeester — IT Infrastructure Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f12;
+      --surface: #13161b;
+      --surface2: #1a1e26;
+      --border: #252b36;
+      --accent: #3cefb0;
+      --accent2: #1fd495;
+      --text: #e8edf5;
+      --muted: #7a8599;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 10px; height: 10px;
+      background: var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: width .15s, height .15s, opacity .15s;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--accent);
+      border-radius: 50%;
+      position: fixed; pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform .1s ease, width .2s, height .2s;
+      opacity: .5;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+      opacity: .6;
+    }
+
+    /* ── GRID LINES ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+      opacity: .25;
+    }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      position: relative; z-index: 1;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.25rem 0;
+      background: rgba(13,15,18,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    nav .inner {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: .85rem;
+      color: var(--accent);
+      letter-spacing: .1em;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: .08em;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 7rem 0 4rem;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .hero-tag {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--accent);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .hero-tag::before {
+      content: '';
+      display: inline-block;
+      width: 24px; height: 1px;
+      background: var(--accent);
+    }
+    h1 {
+      font-size: clamp(3rem, 7vw, 5.5rem);
+      font-weight: 800;
+      line-height: .95;
+      letter-spacing: -.03em;
+      margin-bottom: 1.5rem;
+    }
+    h1 .line { display: block; overflow: hidden; }
+    h1 .line span {
+      display: block;
+      animation: slideUp .7s cubic-bezier(.16,1,.3,1) both;
+    }
+    h1 .line:nth-child(2) span { animation-delay: .1s; }
+    @keyframes slideUp {
+      from { transform: translateY(110%); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .hero-desc {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 2.5rem;
+      animation: fadeIn .8s .4s both;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
+
+    .hero-cta {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      animation: fadeIn .8s .55s both;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.6rem;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: .8rem;
+      letter-spacing: .08em;
+      text-decoration: none;
+      transition: all .2s;
+      cursor: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0d0f12;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: #fff; }
+    .btn-ghost {
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Photo card */
+    .hero-photo-wrap {
+      position: relative;
+      animation: fadeIn .9s .3s both;
+    }
+    .photo-card {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .photo-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(160deg, transparent 50%, rgba(60,239,176,.08) 100%);
+    }
+    .photo-card img {
+      width: 100%;
+      display: block;
+      filter: grayscale(20%) contrast(1.05);
+    }
+    .photo-badge {
+      position: absolute;
+      bottom: 1.5rem; left: 1.5rem;
+      background: rgba(13,15,18,.9);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+      border-radius: 6px;
+      padding: .75rem 1rem;
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--accent);
+      z-index: 2;
+    }
+    .photo-badge span { display: block; color: var(--muted); margin-top: .2rem; font-size: .65rem; }
+    .corner-accent {
+      position: absolute;
+      top: -12px; right: -12px;
+      width: 48px; height: 48px;
+      border-top: 2px solid var(--accent);
+      border-right: 2px solid var(--accent);
+      border-radius: 0 6px 0 0;
+    }
+    .corner-accent-bl {
+      position: absolute;
+      bottom: -12px; left: -12px;
+      width: 48px; height: 48px;
+      border-bottom: 2px solid var(--accent);
+      border-left: 2px solid var(--accent);
+      border-radius: 0 0 0 6px;
+    }
+
+    /* ── SECTION SHARED ── */
+    section { padding: 6rem 0; }
+    .section-label {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      margin-bottom: .75rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      margin-bottom: 3rem;
+    }
+    .divider {
+      width: 100%; height: 1px;
+      background: var(--border);
+      margin: 0 0 5rem;
+    }
+
+    /* ── SKILLS ── */
+    #skills { border-top: 1px solid var(--border); }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+    .skill-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem 1.5rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .skill-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .skill-icon {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: var(--accent);
+      letter-spacing: .1em;
+      margin-bottom: .5rem;
+    }
+    .skill-name {
+      font-size: .95rem;
+      font-weight: 600;
+    }
+
+    /* ── EXPERIENCE ── */
+    #experience { border-top: 1px solid var(--border); }
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 2rem;
+      padding: 2.5rem 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .tl-date {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--muted);
+      padding-top: .2rem;
+      letter-spacing: .05em;
+    }
+    .tl-dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      margin-bottom: .75rem;
+    }
+    .tl-company {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--accent);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .4rem;
+    }
+    .tl-role {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: .75rem;
+    }
+    .tl-desc {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.7;
+    }
+    .tl-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+    .tag {
+      font-family: var(--mono);
+      font-size: .65rem;
+      padding: .3rem .7rem;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    /* ── EDUCATION ── */
+    #education { border-top: 1px solid var(--border); }
+    .edu-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem 2.5rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: start;
+      transition: border-color .25s;
+    }
+    .edu-card:hover { border-color: var(--accent); }
+    .edu-school {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+    .edu-degree {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: .4rem;
+    }
+    .edu-spec {
+      font-size: .9rem;
+      color: var(--muted);
+      margin-bottom: .75rem;
+    }
+    .edu-note {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .edu-year {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--muted);
+      text-align: right;
+      white-space: nowrap;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: .4rem;
+      font-family: var(--mono);
+      font-size: .65rem;
+      padding: .3rem .75rem;
+      background: rgba(60,239,176,.08);
+      border: 1px solid rgba(60,239,176,.25);
+      border-radius: 100px;
+      color: var(--accent);
+      letter-spacing: .08em;
+    }
+    .status-pill::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    /* ── EXTRAS ── */
+    #extras { border-top: 1px solid var(--border); }
+    .extras-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .extra-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.75rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .extra-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+    .extra-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .extra-icon img {
+      width: 40%;
+      height: 40%;
+      object-fit: cover;
+    }
+    .extra-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: .5rem;
+    }
+    .extra-desc {
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── CONTACT ── */
+    #contact {
+      border-top: 1px solid var(--border);
+      padding-bottom: 8rem;
+    }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+    .contact-intro {
+      font-size: 1rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 2rem;
+    }
+    .contact-links { display: flex; flex-direction: column; gap: .75rem; }
+    .contact-link {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: .8rem;
+      transition: border-color .2s, color .2s;
+    }
+    .contact-link:hover { border-color: var(--accent); color: var(--accent); }
+    .contact-link-icon {
+      width: 32px; height: 32px;
+      background: var(--surface2);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+
+    /* Big contact cta */
+    .contact-cta-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .contact-cta-box::before {
+      content: '';
+      position: absolute; bottom: -60px; right: -60px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(60,239,176,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-label {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--accent);
+      letter-spacing: .15em;
+      margin-bottom: .75rem;
+    }
+    .cta-heading {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: .75rem;
+      letter-spacing: -.02em;
+    }
+    .cta-text {
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.65;
+      margin-bottom: 1.75rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 0;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--muted);
+      position: relative; z-index: 1;
+    }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .hero-grid, .contact-grid { grid-template-columns: 1fr; }
+      .hero-photo-wrap { order: -1; max-width: 340px; margin: 0 auto; }
+      .timeline-item { grid-template-columns: 1fr; gap: .5rem; }
+      .edu-card { grid-template-columns: 1fr; }
+      nav .inner { gap: 1rem; }
+      .nav-links { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <!-- NAV -->
+  <nav>
+    <div class="container inner">
+      <a href="#hero" class="nav-logo">Wout Demeester</a>
+      <ul class="nav-links">
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#experience">Ervaring</a></li>
+        <li><a href="#education">Studie</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <p class="hero-tag">Infrastructure Engineer</p>
+          <h1>
+            <span class="line"><span>Wout</span></span>
+            <span class="line"><span>Demee-</span></span>
+            <span class="line"><span>ster</span></span>
+          </h1>
+          <p class="hero-desc">
+            21-jarige IT-student uit Roeselare. Gepassioneerd door netwerk- en systeembeheer, met hands-on ervaring via stage en studie. Altijd klaar voor een nieuwe uitdaging.
+          </p>
+          <div class="hero-cta">
+            <a href="#contact" class="btn btn-primary">↗ Neem contact op</a>
+            <a href="#experience" class="btn btn-ghost">Bekijk ervaring</a>
+          </div>
+        </div>
+        <div class="hero-photo-wrap">
+          <div class="corner-accent"></div>
+          <div class="corner-accent-bl"></div>
+          <div class="photo-card">
+            <!-- Placeholder photo — vervang src door jouw foto -->
+            <img
+              src="images/wout-demeester.jpg"
+              alt="Wout Demeester"
+            />
+            <div class="photo-badge">
+              wout.demeester<span>Roeselare, BE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="container">
+      <p class="section-label">// 01 — vaardigheden</p>
+      <h2 class="section-title">Hard & Soft Skills</h2>
+
+      <p style="font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:.1em;margin-bottom:1.25rem;text-transform:uppercase;">Hard Skills</p>
+      <div class="skills-grid reveal">
+        <div class="skill-card"><div class="skill-icon">OS</div><div class="skill-name">Linux</div></div>
+        <div class="skill-card"><div class="skill-icon">OS</div><div class="skill-name">Windows</div></div>
+        <div class="skill-card"><div class="skill-icon">NET</div><div class="skill-name">Cisco Netwerkapparatuur</div></div>
+        <div class="skill-card"><div class="skill-icon">WEB</div><div class="skill-name">HTML / CSS / JS</div></div>
+        <div class="skill-card"><div class="skill-icon">BKP</div><div class="skill-name">Veeam Backup</div></div>
+        <div class="skill-card"><div class="skill-icon">MON</div><div class="skill-name">EcoStruxure</div></div>
+        <div class="skill-card"><div class="skill-icon">MON</div><div class="skill-name">OpManager</div></div>
+        <div class="skill-card"><div class="skill-icon">INF</div><div class="skill-name">UPS-systemen</div></div>
+      </div>
+
+      <p style="font-family:var(--mono);font-size:.7rem;color:var(--accent);letter-spacing:.1em;margin:2.5rem 0 1.25rem;text-transform:uppercase;">Soft Skills</p>
+      <div class="skills-grid reveal">
+        <div class="skill-card"><div class="skill-icon">→</div><div class="skill-name">Probleemoplossend denken</div></div>
+        <div class="skill-card"><div class="skill-icon">→</div><div class="skill-name">Flexibel met werkuren</div></div>
+        <div class="skill-card"><div class="skill-icon">→</div><div class="skill-name">Open voor uitdagingen</div></div>
+        <div class="skill-card"><div class="skill-icon">→</div><div class="skill-name">Zelfstandig werken</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="container">
+      <p class="section-label">// 02 — ervaring</p>
+      <h2 class="section-title">Werkervaring</h2>
+
+      <div class="timeline">
+
+        <!-- Stage -->
+        <div class="timeline-item reveal">
+          <div class="tl-date">Stage<br/>2026</div>
+          <div>
+            <div class="tl-dot"></div>
+            <div class="tl-company">Belgian Pork Group</div>
+            <div class="tl-role">IT Infrastructure Intern</div>
+            <div class="tl-desc">
+              Gewerkt binnen het IT Infra Team. Zelfstandig UPS-systemen geplaatst en geconfigureerd. Monitoringsystemen opgezet voor zowel de backupomgeving als de volledige netwerkinfrastructuur.
+            </div>
+            <div class="tl-tags">
+              <span class="tag">UPS-systemen</span>
+              <span class="tag">Netwerk monitoring</span>
+              <span class="tag">Veeam</span>
+              <span class="tag">EcoStruxure</span>
+              <span class="tag">OpManager</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Studentenjob -->
+        <div class="timeline-item reveal">
+          <div class="tl-date">2022 –<br/>Heden</div>
+          <div>
+            <div class="tl-dot"></div>
+            <div class="tl-company">Westvlees (Belgian Pork Group)</div>
+            <div class="tl-role">Studentenjob — Diepvriesafdeling</div>
+            <div class="tl-desc">
+              Seizoenwerk tijdens vakanties in de fabriek op de afdeling diepvries. Vroege shiften (5u–12u). Leert discipline, stiptheid en fysieke inzet.
+            </div>
+            <div class="tl-tags">
+              <span class="tag">Teamwork</span>
+              <span class="tag">Vroege shifts</span>
+              <span class="tag">Flexibiliteit</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <div class="container">
+      <p class="section-label">// 03 — studie</p>
+      <h2 class="section-title">Opleiding</h2>
+
+      <div class="edu-card reveal">
+        <div>
+          <div class="edu-school">HOGENT — Hogeschool Gent</div>
+          <div class="edu-degree">Toegepaste Informatica</div>
+          <div class="edu-spec">Afstudeerrichting: Systeem- en Netwerkbeheer</div>
+          <div class="edu-note">
+            Momenteel in het 3e jaar. Hands-on ervaring met verschillende besturingssystemen en het opzetten van netwerken via projectmatig werken.
+          </div>
+          <div class="tl-tags" style="margin-top:1rem;">
+            <span class="tag">Linux</span>
+            <span class="tag">Windows Server</span>
+            <span class="tag">Cisco</span>
+            <span class="tag">Netwerken</span>
+            <span class="tag">Projectwerk</span>
+          </div>
+        </div>
+        <div>
+          <div class="edu-year">2023 – Heden</div>
+          <div style="margin-top:.75rem;"><span class="status-pill">In uitvoering</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXTRAS -->
+  <section id="extras">
+    <div class="container">
+      <p class="section-label">// 04 — buiten het werk</p>
+      <h2 class="section-title">Extra-curriculair</h2>
+
+      <div class="extras-grid reveal">
+        <div class="extra-card">
+          <div class="extra-icon"><img src="images/chirologo.jpg" alt="Chiro Icon"></div>
+          <div class="extra-title">Chiro Westrozebeke</div>
+          <div class="extra-desc">
+            Actief als groepsleiding bij Chiro Westrozebeke. Verantwoordelijkheid, teamwork en leiderschap zijn hier dagelijkse kost.
+          </div>
+        </div>
+        <div class="extra-card">
+          <div class="extra-icon">🥁</div>
+          <div class="extra-title">Drum</div>
+          <div class="extra-desc">
+            Speelt drum. Muziek als creatieve uitlaatklep naast de technische wereld van IT-infrastructuur.
+          </div>
+        </div>
+        <div class="extra-card">
+          <div class="extra-icon">⚡</div>
+          <div class="extra-title">Open voor uitdagingen</div>
+          <div class="extra-desc">
+            Altijd bereid nieuwe technologieën te leren en nieuwe projecten aan te pakken — in IT en daarbuiten.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <p class="section-label">// 05 — contact</p>
+      <h2 class="section-title">Laten we praten</h2>
+
+      <div class="contact-grid">
+        <div class="reveal">
+          <p class="contact-intro">
+            Op zoek naar een gemotiveerde IT-student voor een stage, job of samenwerking? Stuur gerust een berichtje — ik reageer snel.
+          </p>
+          <div class="contact-links">
+            <a href="mailto:wout.demeester5@gmail.com" class="contact-link">
+              <span class="contact-link-icon">✉</span>
+              wout.demeester5@gmail.com
+            </a>
+            <a href="tel:+32492456538" class="contact-link">
+              <span class="contact-link-icon">📞</span>
+              +32 492 45 65 38
+            </a>
+            <a href="https://www.linkedin.com/in/wout-demeester" target="_blank" rel="noopener" class="contact-link">
+              <span class="contact-link-icon">in</span>
+              linkedin.com/in/wout-demeester
+            </a>
+            <a href="http://www.chirowestrozebeke.com" target="_blank" rel="noopener" class="contact-link">
+              <span class="contact-link-icon">🏕</span>
+              chirowestrozebeke.com
+            </a>
+          </div>
+        </div>
+
+        <div class="contact-cta-box reveal">
+          <div class="cta-label">// beschikbaar</div>
+          <div class="cta-heading">Klaar voor de<br/>volgende stap.</div>
+          <div class="cta-text">
+            Flexibel met werkuren, sterk zelfstandig en altijd eager om bij te leren. Laat me weten hoe ik kan bijdragen aan jouw team of project.
+          </div>
+          <a href="mailto:wout.demeester5@gmail.com" class="btn btn-primary">Mail mij ↗</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 Wout Demeester — Roeselare, BE</p>
+    </div>
+  </footer>
+
+  <script>
+    // Cursor
+    const cursor = document.getElementById('cursor');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animateCursor() {
+      cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+      rx += (mx - rx) * .12; ry += (my - ry) * .12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          obs.unobserve(e.target);
+        }
+      });
+    }, { threshold: .1 });
+    reveals.forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>
